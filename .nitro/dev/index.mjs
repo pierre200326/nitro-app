@@ -1023,7 +1023,7 @@ const _i1QpKH = defineEventHandler((event) => {
   return;
 });
 
-const _lazy_PupxQO = () => Promise.resolve().then(function () { return check_post$1; });
+const _lazy_dd3QWJ = () => Promise.resolve().then(function () { return bestscore_post$1; });
 const _lazy_Q6kQ9r = () => Promise.resolve().then(function () { return hello$1; });
 const _lazy_PUYPpl = () => Promise.resolve().then(function () { return login_post$1; });
 const _lazy__Is9cs = () => Promise.resolve().then(function () { return ping_get$1; });
@@ -1034,7 +1034,7 @@ const _lazy_N5C7LU = () => Promise.resolve().then(function () { return index$1; 
 const handlers = [
   { route: '', handler: _2TGlJb, lazy: false, middleware: true, method: undefined },
   { route: '', handler: _i1QpKH, lazy: false, middleware: true, method: undefined },
-  { route: '/api/check', handler: _lazy_PupxQO, lazy: true, middleware: false, method: "post" },
+  { route: '/api/bestscore', handler: _lazy_dd3QWJ, lazy: true, middleware: false, method: "post" },
   { route: '/api/hello', handler: _lazy_Q6kQ9r, lazy: true, middleware: false, method: undefined },
   { route: '/api/login', handler: _lazy_PUYPpl, lazy: true, middleware: false, method: "post" },
   { route: '/api/ping', handler: _lazy__Is9cs, lazy: true, middleware: false, method: "get" },
@@ -1315,41 +1315,35 @@ const pool = new Pool({
   }
 });
 
-const check_post = defineEventHandler(async (event) => {
+const bestscore_post = defineEventHandler(async (event) => {
   const body = await readBody(event);
-  const { plat, pays } = body;
-  if (!plat || !pays) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "plat et pays requis"
-    });
+  const { userId, score } = body;
+  if (!userId || typeof score !== "number") {
+    throw createError({ statusCode: 400, statusMessage: "userId et score requis" });
   }
   try {
     const result = await pool.query(
       `
-      SELECT id
-      FROM plats
-      WHERE plat = $1
-        AND pays = $2
-      LIMIT 1
+      UPDATE users
+      SET best_score = GREATEST(best_score, $1)
+      WHERE id = $2
+      RETURNING id, pseudo, best_score
       `,
-      [plat, pays]
+      [score, userId]
     );
-    return {
-      correct: result.rows.length > 0
-    };
+    if (result.rows.length === 0) {
+      throw createError({ statusCode: 404, statusMessage: "Utilisateur non trouv\xE9" });
+    }
+    return result.rows[0];
   } catch (err) {
-    console.error("Erreur API /plats/check :", err);
-    throw createError({
-      statusCode: 500,
-      statusMessage: "Server Error"
-    });
+    console.error("Erreur API /user/bestscore :", err);
+    throw createError({ statusCode: 500, statusMessage: "Server Error" });
   }
 });
 
-const check_post$1 = /*#__PURE__*/Object.freeze({
+const bestscore_post$1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  default: check_post
+  default: bestscore_post
 });
 
 const hello = defineEventHandler(() => {
@@ -1450,7 +1444,7 @@ const register_post$1 = /*#__PURE__*/Object.freeze({
 const index = eventHandler((event) => {
   return `
       <meta charset="utf-8">
-      <h1>TEST login \u{1F680} </h1>
+      <h1>TEST random \u{1F680} </h1>
       <p>Get started by editing the <code>server/routes/index.ts</code> file.</p>
       <p>Learn more from \u{1F4D6} <a href="https://nitro.build/guide" target="_blank">Nitro Documentation</a></p>
     `;
