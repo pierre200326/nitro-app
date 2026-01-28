@@ -907,7 +907,22 @@ const plugins = [
   
 ];
 
-const assets = {};
+const assets = {
+  "/index.mjs": {
+    "type": "text/javascript; charset=utf-8",
+    "etag": "\"a8e0-00vk6pnXoF5HlenaFEwjY39atOk\"",
+    "mtime": "2026-01-28T10:25:05.782Z",
+    "size": 43232,
+    "path": "index.mjs"
+  },
+  "/index.mjs.map": {
+    "type": "application/json",
+    "etag": "\"26b2c-IvzrVj1vdYf6lE6S3RLr1xdzges\"",
+    "mtime": "2026-01-28T10:25:05.782Z",
+    "size": 158508,
+    "path": "index.mjs.map"
+  }
+};
 
 function readAsset (id) {
   const serverDir = dirname$1(fileURLToPath(globalThis._importMeta_.url));
@@ -1303,12 +1318,18 @@ const ping_get$1 = /*#__PURE__*/Object.freeze({
 });
 
 const user_post = defineEventHandler(async (event) => {
-  const { pseudo, mdp } = await readBody(event);
-  const result = await pool.query(
-    "INSERT INTO users (pseudo, mdp) VALUES ($1, $2) RETURNING id, pseudo, best_score",
-    [pseudo, mdp]
-  );
-  return result.rows[0];
+  try {
+    const body = await readBody(event);
+    const { pseudo, mdp } = body;
+    const result = await pool.query(
+      "INSERT INTO users (pseudo, mdp) VALUES ($1, $2) RETURNING id, pseudo, best_score",
+      [pseudo, mdp]
+    );
+    return result.rows[0];
+  } catch (err) {
+    console.error("Erreur API /user :", err);
+    throw createError({ statusCode: 500, statusMessage: "Server Error" });
+  }
 });
 
 const user_post$1 = /*#__PURE__*/Object.freeze({
@@ -1319,7 +1340,7 @@ const user_post$1 = /*#__PURE__*/Object.freeze({
 const index = eventHandler((event) => {
   return `
       <meta charset="utf-8">
-      <h1>This is your brand new Nitro project \u{1F680} </h1>
+      <h1>TEST \u{1F680} </h1>
       <p>Get started by editing the <code>server/routes/index.ts</code> file.</p>
       <p>Learn more from \u{1F4D6} <a href="https://nitro.build/guide" target="_blank">Nitro Documentation</a></p>
     `;
