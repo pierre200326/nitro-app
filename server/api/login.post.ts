@@ -1,7 +1,5 @@
 import { defineEventHandler, readBody, createError } from "h3";
-import pg from "pg";
-
-const { Client } = pg;
+import { pool } from "../db"; // ← utilise ton fichier db.ts
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event);
@@ -11,39 +9,23 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, statusMessage: "Pseudo et mdp requis" });
     }
 
-    // Crée un client pour chaque requête
-    const client = new Client({
-        connectionString:
-            process.env.DATABASE_URL ||
-            "postgresql://user:password@ep-xxx.neon.tech/dbname?sslmode=require",
-        ssl: { rejectUnauthorized: false },
-    });
-
     try {
-        await client.connect();
-
-        const result = await client.query(
+        // utilise le pool existant
+        const result = await pool.query(
             "SELECT id, pseudo, best_score, mdp FROM users WHERE pseudo = $1",
             [pseudo]
         );
 
-        if (result.rowCount === 0) {
+        if (result.rowCount === 0 || result.rows[0].mdp !== mdp) {
             throw createError({ statusCode: 401, statusMessage: "Utilisateur ou mot de passe incorrect" });
         }
 
         const user = result.rows[0];
-
-        if (user.mdp !== mdp) {
-            throw createError({ statusCode: 401, statusMessage: "Utilisateur ou mot de passe incorrect" });
-        }
-
-        delete user.mdp;
+        delete user.mdp; // ne jamais renvoyer le mot de passe
 
         return user;
     } catch (err) {
         console.error("Erreur API /login :", err);
         throw createError({ statusCode: 500, statusMessage: "Server Error" });
-    } finally {
-        await client.end(); // ferme la connexion
     }
 });
