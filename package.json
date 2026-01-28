@@ -1,0 +1,17 @@
+{
+  "name": "nitro-app",
+  "private": true,
+  "scripts": {
+    "build": "nitro build",
+    "dev": "nitro dev",
+    "preview": "node .output/server/index.mjs"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.16.0",
+    "h3": "^1.15.4",
+    "nitropack": "^2.12.4"
+  },
+  "dependencies": {
+    "pg": "^8.17.1"
+  }
+}
