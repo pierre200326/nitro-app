@@ -4,7 +4,7 @@ import { eventHandler } from "h3"
 export default eventHandler((event) => {
   return `
       <meta charset="utf-8">
-      <h1>TEST serverezafzef 🚀 </h1>
+      <h1>TEST remodif 🚀 </h1>
       <p>Get started by editing the <code>server/routes/index.ts</code> file.</p>
       <p>Learn more from 📖 <a href="https://nitro.build/guide" target="_blank">Nitro Documentation</a></p>
     `;
