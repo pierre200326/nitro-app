@@ -917,22 +917,7 @@ const plugins = [
   
 ];
 
-const assets = {
-  "/index.mjs": {
-    "type": "text/javascript; charset=utf-8",
-    "etag": "\"b003-h+/Y47dKYW/mmYPGGG3suOANvPg\"",
-    "mtime": "2026-01-28T13:24:38.749Z",
-    "size": 45059,
-    "path": "index.mjs"
-  },
-  "/index.mjs.map": {
-    "type": "application/json",
-    "etag": "\"28433-Bdh4+3jGDtyxQUYjHB5hGQ3hpG8\"",
-    "mtime": "2026-01-28T13:24:38.749Z",
-    "size": 164915,
-    "path": "index.mjs.map"
-  }
-};
+const assets = {};
 
 function readAsset (id) {
   const serverDir = dirname$1(fileURLToPath(globalThis._importMeta_.url));
@@ -1038,19 +1023,23 @@ const _i1QpKH = defineEventHandler((event) => {
   return;
 });
 
+const _lazy_PupxQO = () => Promise.resolve().then(function () { return check_post$1; });
 const _lazy_Q6kQ9r = () => Promise.resolve().then(function () { return hello$1; });
 const _lazy_PUYPpl = () => Promise.resolve().then(function () { return login_post$1; });
 const _lazy__Is9cs = () => Promise.resolve().then(function () { return ping_get$1; });
-const _lazy_t9llCu = () => Promise.resolve().then(function () { return user_post$1; });
+const _lazy_IgMxF6 = () => Promise.resolve().then(function () { return random_get$1; });
+const _lazy_lbtLkR = () => Promise.resolve().then(function () { return register_post$1; });
 const _lazy_N5C7LU = () => Promise.resolve().then(function () { return index$1; });
 
 const handlers = [
   { route: '', handler: _2TGlJb, lazy: false, middleware: true, method: undefined },
   { route: '', handler: _i1QpKH, lazy: false, middleware: true, method: undefined },
+  { route: '/api/check', handler: _lazy_PupxQO, lazy: true, middleware: false, method: "post" },
   { route: '/api/hello', handler: _lazy_Q6kQ9r, lazy: true, middleware: false, method: undefined },
   { route: '/api/login', handler: _lazy_PUYPpl, lazy: true, middleware: false, method: "post" },
   { route: '/api/ping', handler: _lazy__Is9cs, lazy: true, middleware: false, method: "get" },
-  { route: '/api/user', handler: _lazy_t9llCu, lazy: true, middleware: false, method: "post" },
+  { route: '/api/random', handler: _lazy_IgMxF6, lazy: true, middleware: false, method: "get" },
+  { route: '/api/register', handler: _lazy_lbtLkR, lazy: true, middleware: false, method: "post" },
   { route: '/', handler: _lazy_N5C7LU, lazy: true, middleware: false, method: undefined }
 ];
 
@@ -1318,6 +1307,51 @@ async function shutdown() {
   parentPort?.postMessage({ event: "exit" });
 }
 
+const { Pool } = pg;
+const pool = new Pool({
+  connectionString: "postgresql://neondb_owner:npg_nu8H0dVKThSP@ep-rapid-haze-agfm8rqz-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
+
+const check_post = defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  const { plat, pays } = body;
+  if (!plat || !pays) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "plat et pays requis"
+    });
+  }
+  try {
+    const result = await pool.query(
+      `
+      SELECT id
+      FROM plats
+      WHERE plat = $1
+        AND pays = $2
+      LIMIT 1
+      `,
+      [plat, pays]
+    );
+    return {
+      correct: result.rows.length > 0
+    };
+  } catch (err) {
+    console.error("Erreur API /plats/check :", err);
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Server Error"
+    });
+  }
+});
+
+const check_post$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  default: check_post
+});
+
 const hello = defineEventHandler(() => {
   return { message: "hello world" };
 });
@@ -1325,14 +1359,6 @@ const hello = defineEventHandler(() => {
 const hello$1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   default: hello
-});
-
-const { Pool } = pg;
-const pool = new Pool({
-  connectionString: "postgresql://neondb_owner:npg_nu8H0dVKThSP@ep-rapid-haze-agfm8rqz-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
-  ssl: {
-    rejectUnauthorized: false
-  }
 });
 
 const login_post = defineEventHandler(async (event) => {
@@ -1375,7 +1401,33 @@ const ping_get$1 = /*#__PURE__*/Object.freeze({
   default: ping_get
 });
 
-const user_post = defineEventHandler(async (event) => {
+const random_get = defineEventHandler(async () => {
+  try {
+    const result = await pool.query(
+      "SELECT id, pays, plat FROM plats ORDER BY RANDOM() LIMIT 1"
+    );
+    if (result.rowCount === 0) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "Aucun plat trouv\xE9"
+      });
+    }
+    return result.rows[0];
+  } catch (err) {
+    console.error("Erreur API /plats/random :", err);
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Server Error"
+    });
+  }
+});
+
+const random_get$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  default: random_get
+});
+
+const register_post = defineEventHandler(async (event) => {
   try {
     const body = await readBody(event);
     const { pseudo, mdp } = body;
@@ -1390,9 +1442,9 @@ const user_post = defineEventHandler(async (event) => {
   }
 });
 
-const user_post$1 = /*#__PURE__*/Object.freeze({
+const register_post$1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  default: user_post
+  default: register_post
 });
 
 const index = eventHandler((event) => {
