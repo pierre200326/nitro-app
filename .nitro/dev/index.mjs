@@ -1,6 +1,6 @@
 import process from 'node:process';globalThis._importMeta_={url:import.meta.url,env:process.env};import { tmpdir } from 'node:os';
 import destr from 'file:///home/cytech/ING3/enjeux/nitro-app/node_modules/destr/dist/index.mjs';
-import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent, fetchWithEvent, isEvent, eventHandler, setHeaders, sendRedirect, proxyRequest, getRequestURL, getRequestHeader, getResponseHeader, getRequestHeaders, setResponseHeaders, setResponseStatus, send, appendResponseHeader, removeResponseHeader, createError, setResponseHeader, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getRouterParam, readBody, getQuery as getQuery$1 } from 'file:///home/cytech/ING3/enjeux/nitro-app/node_modules/h3/dist/index.mjs';
+import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent, fetchWithEvent, isEvent, eventHandler, setHeaders, sendRedirect, proxyRequest, getRequestURL, getRequestHeader, getResponseHeader, getRequestHeaders, setResponseHeaders, setResponseStatus, send, appendResponseHeader, removeResponseHeader, createError, setResponseHeader, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getRouterParam, readBody, getQuery as getQuery$1, setHeader } from 'file:///home/cytech/ING3/enjeux/nitro-app/node_modules/h3/dist/index.mjs';
 import { createHooks } from 'file:///home/cytech/ING3/enjeux/nitro-app/node_modules/hookable/dist/index.mjs';
 import { createFetch, Headers as Headers$1 } from 'file:///home/cytech/ING3/enjeux/nitro-app/node_modules/ofetch/dist/node.mjs';
 import { fetchNodeRequestHandler, callNodeRequestHandler } from 'file:///home/cytech/ING3/enjeux/nitro-app/node_modules/node-mock-http/dist/index.mjs';
@@ -910,16 +910,16 @@ const plugins = [
 const assets = {
   "/index.mjs": {
     "type": "text/javascript; charset=utf-8",
-    "etag": "\"a8e0-00vk6pnXoF5HlenaFEwjY39atOk\"",
-    "mtime": "2026-01-28T10:25:05.782Z",
-    "size": 43232,
+    "etag": "\"af90-O+2g7sQgvMgP7U7gek8O6eGrcTQ\"",
+    "mtime": "2026-01-28T10:41:42.267Z",
+    "size": 44944,
     "path": "index.mjs"
   },
   "/index.mjs.map": {
     "type": "application/json",
-    "etag": "\"26b2c-IvzrVj1vdYf6lE6S3RLr1xdzges\"",
-    "mtime": "2026-01-28T10:25:05.782Z",
-    "size": 158508,
+    "etag": "\"28295-0rTeMWKEWsPlHOoaBJ7aZPGtozc\"",
+    "mtime": "2026-01-28T10:41:42.267Z",
+    "size": 164501,
     "path": "index.mjs.map"
   }
 };
@@ -1012,6 +1012,7 @@ const _2TGlJb = eventHandler((event) => {
 });
 
 const _lazy_Q6kQ9r = () => Promise.resolve().then(function () { return hello$1; });
+const _lazy_PUYPpl = () => Promise.resolve().then(function () { return login_post$1; });
 const _lazy__Is9cs = () => Promise.resolve().then(function () { return ping_get$1; });
 const _lazy_t9llCu = () => Promise.resolve().then(function () { return user_post$1; });
 const _lazy_N5C7LU = () => Promise.resolve().then(function () { return index$1; });
@@ -1019,6 +1020,7 @@ const _lazy_N5C7LU = () => Promise.resolve().then(function () { return index$1; 
 const handlers = [
   { route: '', handler: _2TGlJb, lazy: false, middleware: true, method: undefined },
   { route: '/api/hello', handler: _lazy_Q6kQ9r, lazy: true, middleware: false, method: undefined },
+  { route: '/api/login', handler: _lazy_PUYPpl, lazy: true, middleware: false, method: "post" },
   { route: '/api/ping', handler: _lazy__Is9cs, lazy: true, middleware: false, method: "get" },
   { route: '/api/user', handler: _lazy_t9llCu, lazy: true, middleware: false, method: "post" },
   { route: '/', handler: _lazy_N5C7LU, lazy: true, middleware: false, method: undefined }
@@ -1297,6 +1299,45 @@ const hello$1 = /*#__PURE__*/Object.freeze({
   default: hello
 });
 
+const { Client } = pg;
+const login_post = defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  const { pseudo, mdp } = body;
+  if (!pseudo || !mdp) {
+    throw createError({ statusCode: 400, statusMessage: "Pseudo et mdp requis" });
+  }
+  const client = new Client({
+    connectionString: process.env.DATABASE_URL || "postgresql://user:password@ep-xxx.neon.tech/dbname?sslmode=require",
+    ssl: { rejectUnauthorized: false }
+  });
+  try {
+    await client.connect();
+    const result = await client.query(
+      "SELECT id, pseudo, best_score, mdp FROM users WHERE pseudo = $1",
+      [pseudo]
+    );
+    if (result.rowCount === 0) {
+      throw createError({ statusCode: 401, statusMessage: "Utilisateur ou mot de passe incorrect" });
+    }
+    const user = result.rows[0];
+    if (user.mdp !== mdp) {
+      throw createError({ statusCode: 401, statusMessage: "Utilisateur ou mot de passe incorrect" });
+    }
+    delete user.mdp;
+    return user;
+  } catch (err) {
+    console.error("Erreur API /login :", err);
+    throw createError({ statusCode: 500, statusMessage: "Server Error" });
+  } finally {
+    await client.end();
+  }
+});
+
+const login_post$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  default: login_post
+});
+
 const { Pool } = pg;
 const pool = new Pool({
   connectionString: "postgresql://neondb_owner:npg_nu8H0dVKThSP@ep-rapid-haze-agfm8rqz-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -1318,6 +1359,13 @@ const ping_get$1 = /*#__PURE__*/Object.freeze({
 });
 
 const user_post = defineEventHandler(async (event) => {
+  setHeader(event, "Access-Control-Allow-Origin", "*");
+  setHeader(event, "Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  setHeader(event, "Access-Control-Allow-Headers", "Content-Type");
+  if (event.req.method === "OPTIONS") {
+    event.res.statusCode = 200;
+    return "OK";
+  }
   try {
     const body = await readBody(event);
     const { pseudo, mdp } = body;
@@ -1340,7 +1388,7 @@ const user_post$1 = /*#__PURE__*/Object.freeze({
 const index = eventHandler((event) => {
   return `
       <meta charset="utf-8">
-      <h1>TEST \u{1F680} </h1>
+      <h1>TEST server \u{1F680} </h1>
       <p>Get started by editing the <code>server/routes/index.ts</code> file.</p>
       <p>Learn more from \u{1F4D6} <a href="https://nitro.build/guide" target="_blank">Nitro Documentation</a></p>
     `;
