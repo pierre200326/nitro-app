@@ -1029,6 +1029,7 @@ const _lazy_PUYPpl = () => Promise.resolve().then(function () { return login_pos
 const _lazy__Is9cs = () => Promise.resolve().then(function () { return ping_get$1; });
 const _lazy_IgMxF6 = () => Promise.resolve().then(function () { return random_get$1; });
 const _lazy_lbtLkR = () => Promise.resolve().then(function () { return register_post$1; });
+const _lazy_biwR19 = () => Promise.resolve().then(function () { return top_get$1; });
 const _lazy_N5C7LU = () => Promise.resolve().then(function () { return index$1; });
 
 const handlers = [
@@ -1040,6 +1041,7 @@ const handlers = [
   { route: '/api/ping', handler: _lazy__Is9cs, lazy: true, middleware: false, method: "get" },
   { route: '/api/random', handler: _lazy_IgMxF6, lazy: true, middleware: false, method: "get" },
   { route: '/api/register', handler: _lazy_lbtLkR, lazy: true, middleware: false, method: "post" },
+  { route: '/api/top', handler: _lazy_biwR19, lazy: true, middleware: false, method: "get" },
   { route: '/', handler: _lazy_N5C7LU, lazy: true, middleware: false, method: undefined }
 ];
 
@@ -1398,15 +1400,15 @@ const ping_get$1 = /*#__PURE__*/Object.freeze({
 const random_get = defineEventHandler(async () => {
   try {
     const result = await pool.query(
-      "SELECT id, pays, plat FROM plats ORDER BY RANDOM() LIMIT 1"
+      "SELECT id, pays, plat FROM plats ORDER BY RANDOM()"
     );
-    if (result.rowCount === 0) {
+    if (result.rows.length === 0) {
       throw createError({
         statusCode: 404,
         statusMessage: "Aucun plat trouv\xE9"
       });
     }
-    return result.rows[0];
+    return result.rows;
   } catch (err) {
     console.error("Erreur API /plats/random :", err);
     throw createError({
@@ -1425,6 +1427,16 @@ const register_post = defineEventHandler(async (event) => {
   try {
     const body = await readBody(event);
     const { pseudo, mdp } = body;
+    if (!pseudo || !mdp) {
+      throw createError({ statusCode: 400, statusMessage: "Pseudo et mot de passe requis" });
+    }
+    const exists = await pool.query(
+      "SELECT 1 FROM users WHERE pseudo = $1 LIMIT 1",
+      [pseudo]
+    );
+    if (exists.rows.length > 0) {
+      throw createError({ statusCode: 409, statusMessage: "Pseudo d\xE9j\xE0 utilis\xE9" });
+    }
     const result = await pool.query(
       "INSERT INTO users (pseudo, mdp) VALUES ($1, $2) RETURNING id, pseudo, best_score",
       [pseudo, mdp]
@@ -1432,6 +1444,7 @@ const register_post = defineEventHandler(async (event) => {
     return result.rows[0];
   } catch (err) {
     console.error("Erreur API /user :", err);
+    if (err.statusCode) throw err;
     throw createError({ statusCode: 500, statusMessage: "Server Error" });
   }
 });
@@ -1439,6 +1452,28 @@ const register_post = defineEventHandler(async (event) => {
 const register_post$1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   default: register_post
+});
+
+const top_get = defineEventHandler(async () => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT id, pseudo, best_score
+      FROM users
+      ORDER BY best_score DESC
+      LIMIT 10
+      `
+    );
+    return result.rows;
+  } catch (err) {
+    console.error("Erreur API /users/top :", err);
+    throw createError({ statusCode: 500, statusMessage: "Server Error" });
+  }
+});
+
+const top_get$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  default: top_get
 });
 
 const index = eventHandler((event) => {

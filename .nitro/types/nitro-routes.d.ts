@@ -21,6 +21,9 @@ declare module "nitropack/types" {
     '/api/register': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/register.post').default>>>>
     }
+    '/api/top': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/top.get').default>>>>
+    }
     '/': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/routes/index').default>>>>
     }
