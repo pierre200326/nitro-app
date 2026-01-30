@@ -4,7 +4,7 @@ import { pool } from "../db";
 export default defineEventHandler(async () => {
     try {
         const result = await pool.query(
-            "SELECT id, pays, plat FROM plats ORDER BY RANDOM()"
+            "SELECT id, pays, plat FROM europe ORDER BY RANDOM()"
         );
 
         if (result.rows.length === 0) {
