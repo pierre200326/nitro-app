@@ -7,7 +7,7 @@ export default defineEventHandler(async () => {
             `
       SELECT id, pseudo, best_score
       FROM users
-      ORDER BY scoreEU DESC
+      ORDER BY scoreFR DESC
       LIMIT 10
       `
         );
