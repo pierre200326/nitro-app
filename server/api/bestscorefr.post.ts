@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
       UPDATE users
       SET scoreFR = GREATEST(scoreFR, $1)
       WHERE id = $2
-      RETURNING id, pseudo, best_score
+      RETURNING id, pseudo, scoreFR
       `,
             [score, userId]
         );
