@@ -14,7 +14,7 @@ export default defineEventHandler(async () => {
             });
         }
 
-        return result.rows; // tableau de plats mélangés
+        return result.rows;
     } catch (err) {
         console.error("Erreur API /plats/random :", err);
         throw createError({

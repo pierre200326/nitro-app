@@ -20,7 +20,6 @@ export default defineEventHandler(async (event) => {
             throw createError({ statusCode: 409, statusMessage: "Pseudo déjà utilisé" });
         }
 
-        // 2️⃣ Insérer le nouvel utilisateur
         const result = await pool.query(
             "INSERT INTO users (pseudo, mdp) VALUES ($1, $2) RETURNING id, pseudo, best_score",
             [pseudo, mdp]

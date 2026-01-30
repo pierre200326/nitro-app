@@ -5,14 +5,14 @@ export default defineEventHandler(async () => {
     try {
         const result = await pool.query(
             `
-      SELECT id, pseudo, best_score
+      SELECT id, pseudo, scoreEU
       FROM users
       ORDER BY scoreEU DESC
       LIMIT 10
       `
         );
 
-        return result.rows; // renvoie un tableau de max 10 utilisateurs
+        return result.rows;
     } catch (err) {
         console.error("Erreur API /users/top :", err);
         throw createError({ statusCode: 500, statusMessage: "Server Error" });

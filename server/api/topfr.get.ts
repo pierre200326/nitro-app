@@ -12,7 +12,7 @@ export default defineEventHandler(async () => {
       `
         );
 
-        return result.rows; // renvoie un tableau de max 10 utilisateurs
+        return result.rows;
     } catch (err) {
         console.error("Erreur API /users/top :", err);
         throw createError({ statusCode: 500, statusMessage: "Server Error" });
