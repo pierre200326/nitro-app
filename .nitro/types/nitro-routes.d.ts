@@ -18,6 +18,9 @@ declare module "nitropack/types" {
     '/api/random': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/random.get').default>>>>
     }
+    '/api/randomfr': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/randomfr.get').default>>>>
+    }
     '/api/register': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/register.post').default>>>>
     }

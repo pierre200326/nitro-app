@@ -1028,6 +1028,7 @@ const _lazy_Q6kQ9r = () => Promise.resolve().then(function () { return hello$1; 
 const _lazy_PUYPpl = () => Promise.resolve().then(function () { return login_post$1; });
 const _lazy__Is9cs = () => Promise.resolve().then(function () { return ping_get$1; });
 const _lazy_IgMxF6 = () => Promise.resolve().then(function () { return random_get$1; });
+const _lazy_IY9Uhc = () => Promise.resolve().then(function () { return randomfr_get$1; });
 const _lazy_lbtLkR = () => Promise.resolve().then(function () { return register_post$1; });
 const _lazy_biwR19 = () => Promise.resolve().then(function () { return top_get$1; });
 const _lazy_N5C7LU = () => Promise.resolve().then(function () { return index$1; });
@@ -1040,6 +1041,7 @@ const handlers = [
   { route: '/api/login', handler: _lazy_PUYPpl, lazy: true, middleware: false, method: "post" },
   { route: '/api/ping', handler: _lazy__Is9cs, lazy: true, middleware: false, method: "get" },
   { route: '/api/random', handler: _lazy_IgMxF6, lazy: true, middleware: false, method: "get" },
+  { route: '/api/randomfr', handler: _lazy_IY9Uhc, lazy: true, middleware: false, method: "get" },
   { route: '/api/register', handler: _lazy_lbtLkR, lazy: true, middleware: false, method: "post" },
   { route: '/api/top', handler: _lazy_biwR19, lazy: true, middleware: false, method: "get" },
   { route: '/', handler: _lazy_N5C7LU, lazy: true, middleware: false, method: undefined }
@@ -1421,6 +1423,32 @@ const random_get = defineEventHandler(async () => {
 const random_get$1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   default: random_get
+});
+
+const randomfr_get = defineEventHandler(async () => {
+  try {
+    const result = await pool.query(
+      "SELECT id, departement, plat FROM departement ORDER BY RANDOM()"
+    );
+    if (result.rows.length === 0) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "Aucun plat trouv\xE9"
+      });
+    }
+    return result.rows;
+  } catch (err) {
+    console.error("Erreur API /plats/random :", err);
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Server Error"
+    });
+  }
+});
+
+const randomfr_get$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  default: randomfr_get
 });
 
 const register_post = defineEventHandler(async (event) => {
