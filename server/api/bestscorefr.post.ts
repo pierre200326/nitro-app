@@ -13,9 +13,9 @@ export default defineEventHandler(async (event) => {
         const result = await pool.query(
             `
       UPDATE users
-      SET scoreFR = GREATEST(scoreFR, $1)
+      SET scorefr = GREATEST(scorefr, $1)
       WHERE id = $2
-      RETURNING id, pseudo, scoreFR
+      RETURNING id, pseudo, scorefr
       `,
             [score, userId]
         );

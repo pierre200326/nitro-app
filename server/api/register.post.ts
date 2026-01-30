@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
         }
 
         const result = await pool.query(
-            "INSERT INTO users (pseudo, mdp) VALUES ($1, $2) RETURNING id, pseudo, best_score",
+            "INSERT INTO users (pseudo, mdp) VALUES ($1, $2) RETURNING id, pseudo",
             [pseudo, mdp]
         );
 

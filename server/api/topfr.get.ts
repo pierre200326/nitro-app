@@ -5,9 +5,9 @@ export default defineEventHandler(async () => {
     try {
         const result = await pool.query(
             `
-      SELECT id, pseudo, scoreFR
+      SELECT id, pseudo, scorefr
       FROM users
-      ORDER BY scoreFR DESC
+      ORDER BY scorefr DESC
       LIMIT 10
       `
         );
