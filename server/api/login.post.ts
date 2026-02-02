@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
     try {
         // utilise le pool existant
         const result = await pool.query(
-            "SELECT id, pseudo, best_score, mdp FROM users WHERE pseudo = $1",
+            "SELECT id, pseudo, mdp FROM users WHERE pseudo = $1",
             [pseudo]
         );
 
